@@ -26,8 +26,7 @@ class CRC {
     let table = this.gen_table()
     this.table = table
 
-    // optimized for CRC-8
-    if (width === 8 && !reflect && !xor_in && !xor_out) {
+    if (this.width === 8 && !this.xor_in && !this.xor_out && !this.reflect) {
       this.calculate = function (buffer) {
         buffer = validate_buffer(buffer)
         let crc = 0
@@ -41,20 +40,21 @@ class CRC {
   calculate(buffer) {
     buffer = validate_buffer(buffer)
     let crc
+    let {table, width, crc_shift,mask} = this
     if (this.reflect) {
       crc = this.reflected_xor_in
       for (let i = 0; i < buffer.length; i++) {
         let byte = buffer[i]
-        crc = (this.table[(crc ^ byte) & 0xff] ^ crc >>> 8) & this.mask
+        crc = (table[(crc ^ byte) & 0xff] ^ crc >>> 8) & mask
       }
     } else {
       crc = this.shifted_xor_in
       for (let i = 0; i < buffer.length; i++) {
-        crc = this.table[((crc >> (this.width - 8 + this.crc_shift)) ^ buffer[i]) & 0xff] << this.crc_shift
-          ^ crc << (8 - this.crc_shift)
-          & this.mask << this.crc_shift
+        crc = table[((crc >> (width - 8 + crc_shift)) ^ buffer[i]) & 0xff] << crc_shift
+          ^ crc << (8 - crc_shift)
+          & mask << crc_shift
       }
-      crc >>= this.crc_shift
+      crc >>= crc_shift
     }
     crc ^= this.xor_out
     return crc >>> 0
@@ -164,8 +164,8 @@ module.exports = {
 }
 
 function crc(width, poly, xor_in, xor_out, reflect) {
-  let crc = new CRC(width, poly, xor_in, xor_out, reflect)
-  return crc.calculate.bind(crc)
+  let model = new CRC(width, poly, xor_in, xor_out, reflect)
+  return model.calculate.bind(model)
 }
 
 for (let name in models) {

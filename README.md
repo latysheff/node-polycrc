@@ -11,8 +11,7 @@ Calculation is table-based. Tables are dynamically generated once per CRC model.
 There are prebuilt models for CRC-6, CRC-8, CRC-10, CRC-16, CRC-24, CRC-32, CRC-32C.
 
 Motivation for this module were checksums (CRC-6 and CRC-10) used in IuUP (3GPP TS 25.415).
-No other module could provide them.
-Until now there seems to be no other universal and fast CRC calculator module in npm registry.
+It seems to be no other universal and fast CRC module in npm registry.
 
 CRC mathematics are mostly ported from https://pycrc.org/
 
@@ -72,46 +71,87 @@ const models = {
 }
 ```
 ## Module comparison
-There are benchmarks for several npm modules, compared to polycrc, below.
-Each benchmark consumes 1Gb of data in 1kb chunks.
+Here are benchmarks for several npm modules, compared to polycrc.
+Benchmarking tool located in examples dir.
+
+Binary modules marked *
+
+#### 100 Mb of data in 300 byte chunks
 
        algorythm           module            value         calc/sec
 
-            crc6          polycrc               39           157918
+            crc1          polycrc                1           742093
+            crc1              crc              172          1588754
 
-            crc8          polycrc              139           425040
-            crc8              crc              139           365867
-            crc8         node-crc              139           247539
-            crc8         crc-full              139           120636
+            crc6          polycrc                8           776724
 
-           crc10          polycrc               27           157231
+            crc8          polycrc              115          1398104
+            crc8              crc              115          1065628
+            crc8       node-crc *              115           452168
 
-           crc16          polycrc            63191           288545
-           crc16              crc            63191           317077
-           crc16         node-crc            63191           248831
-           crc16         crc-full            60271            21542
+           crc10          polycrc              451           771580
 
-           crc24          polycrc          9247743           158971
-           crc24              crc          9247743           181949
+           crc16          polycrc            18086           960236
+           crc16              crc            18086          1046485
+           crc16       node-crc *            18086           484779
 
-           crc32          polycrc       1904274110           287596
-           crc32              crc       1904274110           353293
-           crc32         node-crc       1904274110           239838
-           crc32         crc-full       1904274110            19637
+           crc24          polycrc          3554611           775002
+           crc24              crc          3554611           604716
 
-           crc32              crc       1904274110           276669
-           crc32          polycrc       1904274110           245971
-           crc32         node-crc       1904274110           223624
-           crc32           crc-32       1904274110           312821
-           crc32     buffer-crc32       1904274110           300796
-           crc32        cyclic-32       1904274110           302357
+           crc32          polycrc       1459514028           976329
+           crc32              crc       1459514028          1149756
+           crc32       node-crc *       1459514028           466034
 
-          crc32c          polycrc       3222595308           281194
-          crc32c    fast-crc32c *       3222595308          2162012
-          crc32c  fast-crc32c(js)       3222595308           292571
-          crc32c     sse4_crc32 *       3222595308          1804777
+           crc32          polycrc       1459514028           970905
+           crc32              crc       1459514028          1165086
+           crc32         node-crc       1459514028           458094
+           crc32           crc-32       1459514028          1127503
+           crc32     buffer-crc32       1459514028           992971
+           crc32        cyclic-32       1459514028          1157370
 
- binary modules marked *
+          crc32c          polycrc       4240566998           865163
+          crc32c  fast-crc32c(js)       4240566998          1019026
+          crc32c    fast-crc32c *       4240566998          2818758
+          crc32c     sse4_crc32 *       4240566998          2410524
+
+#### 100 Mb of data in 100 kb chunks
+
+       algorythm           module            value         calc/sec
+
+            crc1          polycrc                0             1572
+            crc1              crc              193             5919
+
+            crc6          polycrc               33             1651
+
+            crc8          polycrc               27             4231
+            crc8              crc               27             3250
+            crc8       node-crc *               27             3683
+
+           crc10          polycrc              119             1670
+
+           crc16          polycrc            17776             2976
+           crc16              crc            17776             3240
+           crc16       node-crc *            17776             3592
+
+           crc24          polycrc         14484065             2438
+           crc24              crc         14484065             1738
+
+           crc32          polycrc         61412246             2942
+           crc32              crc         61412246             3518
+           crc32       node-crc *         61412246             3567
+
+           crc32          polycrc         61412246             2934
+           crc32              crc         61412246             3592
+           crc32         node-crc         61412246             3631
+           crc32           crc-32         61412246             3580
+           crc32     buffer-crc32         61412246             3555
+           crc32        cyclic-32         61412246             3567
+
+          crc32c          polycrc        587481699             3011
+          crc32c  fast-crc32c(js)        587481699             3240
+          crc32c    fast-crc32c *        587481699            53894
+          crc32c     sse4_crc32 *        587481699            56888
+
 
 [wiki]: https://en.wikipedia.org/wiki/Cyclic_redundancy_check
 

@@ -6,18 +6,41 @@ crc_modules['polycrc'] = require('../polycrc')
 // most popular module
 crc_modules['crc'] = require('crc')
 // modules with custom polynoms
-let module_names = ['node-crc', 'crc-full']
-module_names.forEach(lib => {
-  crc_modules[lib] = require(lib)
-})
+crc_modules['node-crc *'] = require('node-crc')
+// crc_modules['crc-full'] = require('crc-full')
 
-let total_bytes = Math.pow(2, 10 * 3)
-let length = 1024
-let data = crypto.randomBytes(length)
-let tab = str => (' '.repeat(16) + str).slice(-16)
+let algorythms = {
+  'crc32': {
+    'polycrc': require('../polycrc').crc32,
+    'crc': require('crc').crc32,
+    'node-crc': require('node-crc').crc32,
+    'crc-32': require('crc-32').buf,
+    'buffer-crc32': require('buffer-crc32'),
+    'cyclic-32': require('cyclic-32'),
+  },
+  'crc32c': {
+    'polycrc': require('../polycrc').crc32c,
+    'fast-crc32c(js)': require('../node_modules/fast-crc32c/impls/js_crc32c').calculate,
+    'fast-crc32c *': require('fast-crc32c').calculate,
+    'sse4_crc32 *': require('sse4_crc32').calculate,
+  }
+}
 
-function test_all() {
-  for (let i = 6; i <= 32; i++) {
+let total_bytes = 1024 * 1024 * 100
+
+console.log(`${tab('algorythm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
+let chunk_length = 300
+let data = crypto.randomBytes(chunk_length)
+test_all_bits()
+test_selected()
+
+
+function tab(str) {
+  return (' '.repeat(16) + str).slice(-16)
+}
+
+function test_all_bits() {
+  for (let i = 1; i <= 32; i++) {
     let alg = 'crc' + i
     let have = false
     for (let lib in crc_modules) {
@@ -49,27 +72,10 @@ function test_all() {
       }
       if (typeof crc === 'function') {
         have = true
-        benchmark(alg, lib, crc)
+        benchmark(alg, lib, crc, total_bytes, chunk_length)
       }
     }
     if (have) console.log('\r')
-  }
-}
-
-let algorythms = {
-  'crc32': {
-    'crc': require('crc').crc32,
-    'polycrc': require('../polycrc').crc32,
-    'node-crc': require('node-crc').crc32,
-    'crc-32': require('crc-32').buf,
-    'buffer-crc32': require('buffer-crc32'),
-    'cyclic-32': require('cyclic-32'),
-  },
-  'crc32c': {
-    'polycrc': require('../polycrc').crc32c,
-    'fast-crc32c *': require('fast-crc32c').calculate,
-    'fast-crc32c(js)': require('../node_modules/fast-crc32c/impls/js_crc32c').calculate,
-    'sse4_crc32 *': require('sse4_crc32').calculate,
   }
 }
 
@@ -77,14 +83,13 @@ function benchmark(alg, lib, crc) {
   let count = 0
   let value = 0
   let start = Date.now()
-  let cycles = total_bytes / length
+  let cycles = total_bytes / chunk_length
   while (count < cycles) {
     count++
     value = crc(data)
   }
   let cps = ~~(count / (Date.now() - start) * 1000)
   if (Buffer.isBuffer(value)) {
-    // let len = Math.ceil(Math.log2(value.length) / 3)
     value = value.readUIntBE(0, value.length)
   }
   console.log(`${tab(alg)} ${tab(lib)} ${tab(value)} ${tab(cps)}`)
@@ -101,6 +106,3 @@ function test_selected() {
   }
 }
 
-console.log(`${tab('algorythm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
-test_all()
-test_selected()
