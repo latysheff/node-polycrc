@@ -131,15 +131,26 @@ if (!hasTypedArrays && !hasBuffer) {
 function validate_buffer (data) {
   switch (typeof data) {
     case 'number':
+      if (!Number.isSafeInteger(data) || data < 0) {
+        throw Error(`number data must be an nonnegative safe integer, not ${data}`);
+      }
+      // Unpack the number into a big-endian array of 8-bit values.
+      const bytes = [];
+      while (data > 0) {
+        bytes.unshift(data % 256);
+        data = Math.floor(data / 256);
+      }
+      // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
+      // If we have a number more than 32 bits, we will have more bytes already.
+      while (bytes.length < 4) {
+        bytes.unshift(0);
+      }
+      // Just create a buffer from that array.
       if (hasBuffer) {
-        const buffer = Buffer.alloc(4)
-        buffer.writeUInt32BE(data)
-        return buffer
-      } else if (hasTypedArrays) {
-        const buffer = new Uint8Array(4)
-        const dv = new DataView(buffer.buffer)
-        dv.setUint32(0, data)
-        return buffer
+        return Buffer.from(bytes);
+      }
+      if (hasTypedArrays) {
+        return Uint8Array.from(bytes);
       }
       break
     case 'string':
