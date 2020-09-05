@@ -20,6 +20,10 @@ CRC mathematics are mostly ported from https://pycrc.org/
 
 ## API
 
+Where available, this library supports:
+* Standard ECMAScript TypedArrays, DataView, ArrayBuffer
+* Legacy Node.js Buffers
+
 #### crc6(buffer)
 #### crc8(buffer)
 #### crc10(buffer)
