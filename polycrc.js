@@ -123,18 +123,48 @@ class CRC {
   }
 }
 
+const hasTypedArrays = typeof ArrayBuffer !== 'undefined' && typeof Uint8Array !== 'undefined';
+const hasBuffer = typeof Buffer !== 'undefined';
+if (!hasTypedArrays && !hasBuffer) {
+  throw Error('either need TypedArrays or Buffer');
+}
+
 function validate_buffer(data) {
-  if (Buffer.isBuffer(data)) return data
   switch (typeof data) {
     case 'number':
-      let buffer = Buffer.alloc(4)
-      buffer.writeUInt32BE(data)
-      return buffer
+      if (hasTypedArrays) {
+        const buffer = new Uint8Array(4);
+        const dv = new DataView(buffer.buffer);
+        dv.setUint32(0, data);
+        return buffer;
+      } else if (hasBuffer) {
+        const buffer = Buffer.alloc(4)
+        buffer.writeUInt32BE(data)
+        return buffer;
+      }
+      break;
     case 'string':
-      return Buffer.from(data)
+      if (hasTypedArrays) {
+        return new TextEncoder("utf-8").encode(data);
+      } else if (hasBuffer) {
+        return Buffer.from(data)
+      }
+      break;
     default:
-      throw new Error()
+      if (hasTypedArrays) {
+        if (data instanceof ArrayBuffer) {
+          return new Uint8Array(data);
+        }
+        if (ArrayBuffer.isView(data)) {
+          return new Uint8Array(data.buffer);
+        }
+      }
+      if (hasBuffer) {
+        if (Buffer.isBuffer(data)) return data
+      }
+      throw new Error(`Unrecognized data type ${typeof data}: ${data}`);
   }
+  throw Error(`Internal error: no buffer conversion for ${typeof data}: ${data}`);
 }
 
 function mirror(data, width) {
