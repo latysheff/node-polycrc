@@ -11,7 +11,7 @@
 */
 
 class CRC {
-  constructor(width, poly, xor_in, xor_out, reflect) {
+  constructor (width, poly, xor_in, xor_out, reflect) {
     this.width = width
     this.poly = poly
     this.xor_in = xor_in
@@ -30,17 +30,16 @@ class CRC {
       this.calculate = function (buffer) {
         buffer = validate_buffer(buffer)
         let crc = 0
-        for (let i = 0; i < buffer.length; i++)
-          crc = table[crc ^ buffer[i]]
+        for (let i = 0; i < buffer.length; i++) { crc = table[crc ^ buffer[i]] }
         return crc
       }
     }
   }
 
-  calculate(buffer) {
+  calculate (buffer) {
     buffer = validate_buffer(buffer)
     let crc
-    let {table, width, crc_shift,mask} = this
+    let { table, width, crc_shift, mask } = this
     if (this.reflect) {
       crc = this.reflected_xor_in
       for (let i = 0; i < buffer.length; i++) {
@@ -50,9 +49,9 @@ class CRC {
     } else {
       crc = this.shifted_xor_in
       for (let i = 0; i < buffer.length; i++) {
-        crc = table[((crc >> (width - 8 + crc_shift)) ^ buffer[i]) & 0xff] << crc_shift
-          ^ crc << (8 - crc_shift)
-          & mask << crc_shift
+        crc = table[((crc >> (width - 8 + crc_shift)) ^ buffer[i]) & 0xff] << crc_shift ^
+          crc << (8 - crc_shift) &
+          mask << crc_shift
       }
       crc >>= crc_shift
     }
@@ -60,7 +59,7 @@ class CRC {
     return crc >>> 0
   }
 
-  calculate_no_table(buffer) {
+  calculate_no_table (buffer) {
     buffer = validate_buffer(buffer)
     let crc = this.xor_in
     for (let i = 0; i < buffer.length; i++) {
@@ -79,7 +78,7 @@ class CRC {
     return crc >>> 0
   }
 
-  gen_table() {
+  gen_table () {
     let table_length = 256
     let table = []
     for (let i = 0; i < table_length; i++) {
@@ -101,7 +100,7 @@ class CRC {
     return new Int32Array(table)
   }
 
-  print_table() {
+  print_table () {
     let table = this.table
     let digits = Math.ceil(this.width / 4)
     let shift = (digits < 4) ? 4 : 3
@@ -123,57 +122,62 @@ class CRC {
   }
 }
 
-const hasTypedArrays = typeof ArrayBuffer !== 'undefined' && typeof Uint8Array !== 'undefined';
-const hasBuffer = typeof Buffer !== 'undefined';
+const hasTypedArrays = typeof ArrayBuffer !== 'undefined' && typeof Uint8Array !== 'undefined'
+const hasBuffer = typeof Buffer !== 'undefined'
 if (!hasTypedArrays && !hasBuffer) {
-  throw Error('either need TypedArrays or Buffer');
+  throw Error('either need TypedArrays or Buffer')
 }
 
-function validate_buffer(data) {
+function validate_buffer (data) {
   switch (typeof data) {
     case 'number':
       if (hasTypedArrays) {
-        const buffer = new Uint8Array(4);
-        const dv = new DataView(buffer.buffer);
-        dv.setUint32(0, data);
-        return buffer;
+        const buffer = new Uint8Array(4)
+        const dv = new DataView(buffer.buffer)
+        dv.setUint32(0, data)
+        return buffer
       } else if (hasBuffer) {
         const buffer = Buffer.alloc(4)
         buffer.writeUInt32BE(data)
-        return buffer;
+        return buffer
       }
-      break;
+      break
     case 'string':
       if (hasTypedArrays) {
-        return new TextEncoder("utf-8").encode(data);
+        return new TextEncoder('utf-8').encode(data)
       } else if (hasBuffer) {
         return Buffer.from(data)
       }
-      break;
+      break
     default:
       if (hasTypedArrays) {
         if (data instanceof ArrayBuffer) {
-          return new Uint8Array(data);
+          return new Uint8Array(data)
         }
         if (ArrayBuffer.isView(data)) {
-          return new Uint8Array(data.buffer);
+          return new Uint8Array(data.buffer)
         }
       }
       if (hasBuffer) {
         if (Buffer.isBuffer(data)) return data
       }
-      throw new Error(`Unrecognized data type ${typeof data}: ${data}`);
+      throw new Error(`Unrecognized data type ${typeof data}: ${data}`)
   }
-  throw Error(`Internal error: no buffer conversion for ${typeof data}: ${data}`);
+  throw Error(`Internal error: no buffer conversion for ${typeof data}: ${data}`)
 }
 
-function mirror(data, width) {
+function mirror (data, width) {
   let res = 0
   for (let i = 0; i < width; i++) {
     res = res << 1 | data & 1
     data >>= 1
   }
   return res
+}
+
+function crc (width, poly, xor_in, xor_out, reflect) {
+  let model = new CRC(width, poly, xor_in, xor_out, reflect)
+  return model.calculate.bind(model)
 }
 
 const models = {
@@ -187,15 +191,20 @@ const models = {
   crc32c: new CRC(32, 0x1EDC6F41, 0xFFFFFFFF, 0xFFFFFFFF, true)
 }
 
+function noop (value) {}
+
 module.exports = {
   CRC,
+  crc,
   models,
-  crc
-}
-
-function crc(width, poly, xor_in, xor_out, reflect) {
-  let model = new CRC(width, poly, xor_in, xor_out, reflect)
-  return model.calculate.bind(model)
+  crc1: noop,
+  crc6: noop,
+  crc8: noop,
+  crc10: noop,
+  crc16: noop,
+  crc24: noop,
+  crc32: noop,
+  crc32c: noop
 }
 
 for (let name in models) {

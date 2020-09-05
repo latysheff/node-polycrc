@@ -1,8 +1,11 @@
 {
   "name": "polycrc",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "polycrc.js",
   "description": "Fast Javascript calculation of custom CRC checksum. Prebuilt models for CRC-6, CRC-8, CRC-10, CRC-16, CRC-24, CRC-32, CRC-32C.",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
   "keywords": [
     "crc",
     "crc6",
@@ -25,12 +28,15 @@
     "fast-crc32c": "^1.0.4",
     "js-crc": "^0.2.0",
     "node-crc": "^1.2.1",
-    "sse4_crc32": "^5.1.1"
+    "sse4_crc32": "^5.1.1",
+    "standard": "^14.3.4",
+    "tape": "^5.0.1"
   },
   "author": {
     "name": "Vladimir Latyshev",
     "email": "latysheff@gmail.com"
   },
   "license": "MIT",
-  "repository": "https://github.com/latysheff/node-polycrc.git"
+  "repository": "https://github.com/latysheff/node-polycrc.git",
+  "dependencies": {}
 }

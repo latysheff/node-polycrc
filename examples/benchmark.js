@@ -1,12 +1,10 @@
 let crypto = require('crypto')
 
 let crc_modules = {}
-// this module
-crc_modules['polycrc'] = require('../polycrc')
-// most popular module
-crc_modules['crc'] = require('crc')
-// modules with custom polynoms
-crc_modules['node-crc *'] = require('node-crc')
+
+crc_modules['polycrc'] = require('../polycrc') // this module
+crc_modules['crc'] = require('crc') // most popular module
+crc_modules['node-crc *'] = require('node-crc') // modules with custom polynoms
 // crc_modules['crc-full'] = require('crc-full')
 
 let algorythms = {
@@ -16,13 +14,13 @@ let algorythms = {
     'node-crc': require('node-crc').crc32,
     'crc-32': require('crc-32').buf,
     'buffer-crc32': require('buffer-crc32'),
-    'cyclic-32': require('cyclic-32'),
+    'cyclic-32': require('cyclic-32')
   },
   'crc32c': {
     'polycrc': require('../polycrc').crc32c,
     'fast-crc32c(js)': require('../node_modules/fast-crc32c/impls/js_crc32c').calculate,
     'fast-crc32c *': require('fast-crc32c').calculate,
-    'sse4_crc32 *': require('sse4_crc32').calculate,
+    'sse4_crc32 *': require('sse4_crc32').calculate
   }
 }
 
@@ -34,12 +32,11 @@ let data = crypto.randomBytes(chunk_length)
 test_all_bits()
 test_selected()
 
-
-function tab(str) {
+function tab (str) {
   return (' '.repeat(16) + str).slice(-16)
 }
 
-function test_all_bits() {
+function test_all_bits () {
   for (let i = 1; i <= 32; i++) {
     let alg = 'crc' + i
     let have = false
@@ -57,8 +54,7 @@ function test_all_bits() {
       } else if (crc_module.CRC) {
         if (crc_module.CRC.default) {
           crc = crc_module.CRC.default(alg.toLocaleUpperCase())
-          if (!crc && i === 16)
-            crc = new crc_module.CRC(alg, 16, 0x8005, 0x0000, 0x0000, true)
+          if (!crc && i === 16) { crc = new crc_module.CRC(alg, 16, 0x8005, 0x0000, 0x0000, true) }
           if (crc) {
             crc = crc.compute.bind(crc)
           }
@@ -79,7 +75,7 @@ function test_all_bits() {
   }
 }
 
-function benchmark(alg, lib, crc) {
+function benchmark (alg, lib, crc) {
   let count = 0
   let value = 0
   let start = Date.now()
@@ -95,7 +91,7 @@ function benchmark(alg, lib, crc) {
   console.log(`${tab(alg)} ${tab(lib)} ${tab(value)} ${tab(cps)}`)
 }
 
-function test_selected() {
+function test_selected () {
   for (let alg in algorythms) {
     let algorythm = algorythms[alg]
     for (let lib in algorythm) {
@@ -105,4 +101,3 @@ function test_selected() {
     console.log('\r')
   }
 }
-
