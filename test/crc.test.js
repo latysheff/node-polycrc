@@ -28,3 +28,17 @@ tape('CRC of a number', function (t) {
   t.same(polycrc.crc32c(number), 1081658169)
   t.end()
 })
+
+const buf = Buffer.from([1, 2, 3])
+
+tape('CRC of a buffer', function (t) {
+  t.same(polycrc.crc1(buf), 0)
+  t.same(polycrc.crc6(buf), 20)
+  t.same(polycrc.crc8(buf), 72)
+  t.same(polycrc.crc10(buf), 928)
+  t.same(polycrc.crc16(buf), 41232)
+  t.same(polycrc.crc24(buf), 6775187)
+  t.same(polycrc.crc32(buf), 1438416925)
+  t.same(polycrc.crc32c(buf), 4046516766)
+  t.end()
+})

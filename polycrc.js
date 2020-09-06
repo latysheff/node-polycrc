@@ -131,14 +131,14 @@ if (!hasTypedArrays && !hasBuffer) {
 function validate_buffer (data) {
   switch (typeof data) {
     case 'number':
-      if (hasTypedArrays) {
+      if (hasBuffer) {
+        const buffer = Buffer.alloc(4)
+        buffer.writeUInt32BE(data)
+        return buffer
+      } else if (hasTypedArrays) {
         const buffer = new Uint8Array(4)
         const dv = new DataView(buffer.buffer)
         dv.setUint32(0, data)
-        return buffer
-      } else if (hasBuffer) {
-        const buffer = Buffer.alloc(4)
-        buffer.writeUInt32BE(data)
         return buffer
       }
       break
@@ -150,6 +150,9 @@ function validate_buffer (data) {
       }
       break
     default:
+      if (hasBuffer) {
+        if (Buffer.isBuffer(data)) return data
+      }
       if (hasTypedArrays) {
         if (data instanceof ArrayBuffer) {
           return new Uint8Array(data)
@@ -157,9 +160,6 @@ function validate_buffer (data) {
         if (ArrayBuffer.isView(data)) {
           return new Uint8Array(data.buffer)
         }
-      }
-      if (hasBuffer) {
-        if (Buffer.isBuffer(data)) return data
       }
       throw new Error(`Unrecognized data type ${typeof data}: ${data}`)
   }
