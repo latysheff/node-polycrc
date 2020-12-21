@@ -50,7 +50,7 @@ which can be used for pretty-printing generated CRC tables:
 
 
 ### Example
-```
+```js
 let crypto = require('crypto')
 let polycrc = require('polycrc')
 let crc10 = polycrc.crc10
@@ -62,7 +62,7 @@ console.log(polycrc.models.crc8.print_table())
 ```
 
 ### Prebuilt models
-```
+```js
 const models = {
   crc1: new CRC(1, 0x01, 0x00, 0x00, false),
   crc6: new CRC(6, 0x2F, 0x00, 0x00, false),
