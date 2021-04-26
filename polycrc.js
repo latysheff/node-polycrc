@@ -128,11 +128,19 @@ if (!hasTypedArrays && !hasBuffer) {
   throw Error('either need TypedArrays or Buffer')
 }
 
+function fixUpNumberBytes (bytes) {
+  // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
+  // If we have a number more than 32 bits, we will have more bytes already.
+  while (bytes.length < 4) {
+    bytes.unshift(0);
+  }
+}
+
 function validate_buffer (data) {
   switch (typeof data) {
     case 'number':
       if (!Number.isSafeInteger(data) || data < 0) {
-        throw Error(`number data must be an nonnegative safe integer, not ${data}`);
+        throw Error(`number data must be a nonnegative safe integer, not ${data}`);
       }
       // Unpack the number into a big-endian array of 8-bit values.
       const bytes = [];
@@ -140,11 +148,7 @@ function validate_buffer (data) {
         bytes.unshift(data % 256);
         data = Math.floor(data / 256);
       }
-      // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
-      // If we have a number more than 32 bits, we will have more bytes already.
-      while (bytes.length < 4) {
-        bytes.unshift(0);
-      }
+      fixUpNumberBytes(bytes)
       // Just create a buffer from that array.
       if (hasBuffer) {
         return Buffer.from(bytes);
@@ -158,6 +162,16 @@ function validate_buffer (data) {
         return new TextEncoder('utf-8').encode(data)
       } else if (hasBuffer) {
         return Buffer.from(data)
+      }
+      break
+    case 'bigint':
+      const pairs = data.toString(16).match(/[\da-f]{2}/gi)
+      const ints = pairs.map(s => parseInt(s, 16))
+      fixUpNumberBytes(ints)
+      if (hasBuffer) {
+        return Buffer.from(ints)
+      } else if (hasTypedArrays) {
+        return new Uint8Array(ints)
       }
       break
     default:

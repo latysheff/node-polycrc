@@ -29,6 +29,72 @@ tape('CRC of a number', function (t) {
   t.end()
 })
 
+tape('CRC of a number > 32-bit', function (t) {
+  const number = 12345 + 2**52
+  t.same(polycrc.crc1(number), 1)
+  t.same(polycrc.crc6(number), 8)
+  t.same(polycrc.crc8(number), 133)
+  t.same(polycrc.crc10(number), 964)
+  t.same(polycrc.crc16(number), 54213)
+  t.same(polycrc.crc24(number), 11462589)
+  t.same(polycrc.crc32(number), 2062679371)
+  t.same(polycrc.crc32c(number), 796528693)
+  t.throws(() => polycrc.crc1(2**54), /must be a nonnegative safe integer/)
+
+  t.end()
+})
+
+tape('CRC of a 32-bit BigInt', function (t) {
+  if (typeof BigInt !== 'undefined') {
+    const number = BigInt(12345)
+    t.same(polycrc.crc1(number), 0)
+    t.same(polycrc.crc6(number), 3)
+    t.same(polycrc.crc8(number), 86)
+    t.same(polycrc.crc10(number), 201)
+    t.same(polycrc.crc16(number), 4820)
+    t.same(polycrc.crc24(number), 9061093)
+    t.same(polycrc.crc32(number), 2701615591)
+    t.same(polycrc.crc32c(number), 1081658169)
+  }
+  t.end()
+})
+
+tape('CRC of a >32-bit BigInt', function (t) {
+  if (typeof BigInt !== 'undefined') {
+    const number = BigInt(12345 + 2**52)
+    t.same(polycrc.crc1(number), 1)
+    t.same(polycrc.crc6(number), 8)
+    t.same(polycrc.crc8(number), 133)
+    t.same(polycrc.crc10(number), 964)
+    t.same(polycrc.crc16(number), 54213)
+    t.same(polycrc.crc24(number), 11462589)
+    t.same(polycrc.crc32(number), 2062679371)
+    t.same(polycrc.crc32c(number), 796528693)
+  }
+  t.end()
+})
+
+tape('CRC of a really BigInt', function (t) {
+  if (typeof BigInt !== 'undefined') {
+    // Convert the string to a big-endian bigint.
+    const bytes = new TextEncoder('utf-8').encode(string)
+    const ints = [...bytes.values()].map(b => b.toString(16).padStart(2, '0'))
+    const hex = ints.join('')
+    const bignum = BigInt(`0x${hex}`)
+
+    // Validate the same CRCs as the string.
+    t.same(polycrc.crc1(bignum), 1)
+    t.same(polycrc.crc6(bignum), 47)
+    t.same(polycrc.crc8(bignum), 188)
+    t.same(polycrc.crc10(bignum), 926)
+    t.same(polycrc.crc16(bignum), 39498)
+    t.same(polycrc.crc24(bignum), 1826690)
+    t.same(polycrc.crc32(bignum), 3957769958)
+    t.same(polycrc.crc32c(bignum), 3365996261)
+  }
+  t.end()
+})
+
 const buf = Buffer.from([1, 2, 3])
 
 tape('CRC of a buffer', function (t) {
