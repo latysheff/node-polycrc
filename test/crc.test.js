@@ -42,3 +42,50 @@ tape('CRC of a buffer', function (t) {
   t.same(polycrc.crc32c(buf), 4046516766)
   t.end()
 })
+
+tape('CRC of an ArrayBuffer', function (t) {
+  if (typeof ArrayBuffer !== 'undefined') {
+    const ubuf = new Uint8Array(buf.values())
+    const abuf = ubuf.buffer
+    t.same(polycrc.crc1(abuf), 0)
+    t.same(polycrc.crc6(abuf), 20)
+    t.same(polycrc.crc8(abuf), 72)
+    t.same(polycrc.crc10(abuf), 928)
+    t.same(polycrc.crc16(abuf), 41232)
+    t.same(polycrc.crc24(abuf), 6775187)
+    t.same(polycrc.crc32(abuf), 1438416925)
+    t.same(polycrc.crc32c(abuf), 4046516766)
+  }
+  t.end()
+})
+
+tape('CRC of a Uint8Array', function (t) {
+  if (typeof Uint8Array !== 'undefined') {
+    const ubuf = new Uint8Array(buf.values())
+    t.same(polycrc.crc1(ubuf), 0)
+    t.same(polycrc.crc6(ubuf), 20)
+    t.same(polycrc.crc8(ubuf), 72)
+    t.same(polycrc.crc10(ubuf), 928)
+    t.same(polycrc.crc16(ubuf), 41232)
+    t.same(polycrc.crc24(ubuf), 6775187)
+    t.same(polycrc.crc32(ubuf), 1438416925)
+    t.same(polycrc.crc32c(ubuf), 4046516766)
+  }
+  t.end()
+})
+
+tape('CRC of a DataView', function (t) {
+  if (typeof DataView !== 'undefined') {
+    const wideBuf = new Uint8Array([0, 1, 2, 3, 4])
+    const buf = new DataView(wideBuf.buffer, 1, 3)
+    t.same(polycrc.crc1(buf), 0)
+    t.same(polycrc.crc6(buf), 20)
+    t.same(polycrc.crc8(buf), 72)
+    t.same(polycrc.crc10(buf), 928)
+    t.same(polycrc.crc16(buf), 41232)
+    t.same(polycrc.crc24(buf), 6775187)
+    t.same(polycrc.crc32(buf), 1438416925)
+    t.same(polycrc.crc32c(buf), 4046516766)
+  }
+  t.end()
+})

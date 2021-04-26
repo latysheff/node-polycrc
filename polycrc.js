@@ -154,11 +154,11 @@ function validate_buffer (data) {
         if (Buffer.isBuffer(data)) return data
       }
       if (hasTypedArrays) {
+        if (ArrayBuffer.isView(data)) {
+          return new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+        }
         if (data instanceof ArrayBuffer) {
           return new Uint8Array(data)
-        }
-        if (ArrayBuffer.isView(data)) {
-          return new Uint8Array(data.buffer)
         }
       }
       throw new Error(`Unrecognized data type ${typeof data}: ${data}`)
