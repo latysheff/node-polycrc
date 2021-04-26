@@ -132,7 +132,7 @@ function fixUpNumberBytes (bytes) {
   // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
   // If we have a number more than 32 bits, we will have more bytes already.
   while (bytes.length < 4) {
-    bytes.unshift(0);
+    bytes.unshift(0)
   }
 }
 
@@ -140,21 +140,21 @@ function validate_buffer (data) {
   switch (typeof data) {
     case 'number':
       if (!Number.isSafeInteger(data) || data < 0) {
-        throw Error(`number data must be a nonnegative safe integer, not ${data}`);
+        throw Error(`number data must be a nonnegative safe integer, not ${data}`)
       }
       // Unpack the number into a big-endian array of 8-bit values.
-      const bytes = [];
+      const bytes = []
       while (data > 0) {
-        bytes.unshift(data % 256);
-        data = Math.floor(data / 256);
+        bytes.unshift(data % 256)
+        data = Math.floor(data / 256)
       }
       fixUpNumberBytes(bytes)
       // Just create a buffer from that array.
       if (hasBuffer) {
-        return Buffer.from(bytes);
+        return Buffer.from(bytes)
       }
       if (hasTypedArrays) {
-        return Uint8Array.from(bytes);
+        return Uint8Array.from(bytes)
       }
       break
     case 'string':
