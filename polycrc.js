@@ -12,6 +12,7 @@
 
 class CRC {
   constructor (width, poly, xor_in, xor_out, reflect) {
+    this.converter = makeBufferConverter()
     this.width = width
     this.poly = poly
     this.xor_in = xor_in
@@ -28,7 +29,7 @@ class CRC {
 
     if (this.width === 8 && !this.xor_in && !this.xor_out && !this.reflect) {
       this.calculate = function (buffer) {
-        buffer = validate_buffer(buffer)
+        buffer = this.converter.validate_buffer(buffer)
         let crc = 0
         for (let i = 0; i < buffer.length; i++) { crc = table[crc ^ buffer[i]] }
         return crc
@@ -37,7 +38,7 @@ class CRC {
   }
 
   calculate (buffer) {
-    buffer = validate_buffer(buffer)
+    buffer = this.converter.validate_buffer(buffer)
     let crc
     let { table, width, crc_shift, mask } = this
     if (this.reflect) {
@@ -60,7 +61,7 @@ class CRC {
   }
 
   calculate_no_table (buffer) {
-    buffer = validate_buffer(buffer)
+    buffer = this.converter.validate_buffer(buffer)
     let crc = this.xor_in
     for (let i = 0; i < buffer.length; i++) {
       let octet = buffer[i]
@@ -122,48 +123,104 @@ class CRC {
   }
 }
 
-const hasTypedArrays = typeof ArrayBuffer !== 'undefined' && typeof Uint8Array !== 'undefined'
 const hasBuffer = typeof Buffer !== 'undefined'
-if (!hasTypedArrays && !hasBuffer) {
-  throw Error('either need TypedArrays or Buffer')
+const hasTypedArrays = typeof ArrayBuffer !== 'undefined' && typeof Uint8Array !== 'undefined'
+
+const b256 = typeof BigInt !== undefined && BigInt(256)
+
+class BaseConverter {
+  validate_buffer (data) {
+    switch (typeof data) {
+      case 'number': {
+        if (!Number.isSafeInteger(data) || data < 0) {
+          throw Error(`number data must be a nonnegative safe integer, not ${data}`)
+        }
+
+        if (this.fromUInt32 && data <= 0xffffffff) {
+          return this.fromUInt32(data)
+        }
+
+        // Unpack the number into a big-endian array of 8-bit values.
+        const bytes = []
+
+        // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
+        // If we have a number more than 32 bits, we will have more bytes already.
+        while (data > 0 || bytes.length < 4) {
+          bytes.unshift(data % 256)
+          data = Math.floor(data / 256)
+        }
+
+        // Just create a buffer from that array.
+        return this.fromByteArray(bytes)
+      }
+      case 'string': {
+        return this.fromString(data)
+      }
+      case 'bigint': {
+        if (data < 0) {
+          throw Error(`bigint data must be nonnegative, not ${data}`)
+        }
+
+        // Unpack the bigint into a big-endian array of 8-bit values.
+        const bytes = []
+
+        // For compatibility with polycrc@1.0.0, we make it at least 4 bytes in length.
+        // If we have a number more than 32 bits, we will have more bytes already.
+        while (data > 0 || bytes.length < 4) {
+          bytes.unshift(Number(data % b256))
+          data /= b256
+        }
+        return this.fromByteArray(bytes)
+      }
+      default: {
+        // These conversions are not object methods because we want both
+        // BufferConverter and TypedArrayConverter to support whatever the
+        // platform is capable of.
+        if (hasBuffer && Buffer.isBuffer(data)) {
+          return data
+        }
+        if (hasTypedArrays) {
+          if (ArrayBuffer.isView(data)) {
+            return new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+          }
+          if (data instanceof ArrayBuffer) {
+            return new Uint8Array(data)
+          }
+        }
+        throw new Error(`Unrecognized data type ${typeof data}: ${data}`)
+      }
+    }
+  }
 }
 
-function validate_buffer (data) {
-  switch (typeof data) {
-    case 'number':
-      if (hasBuffer) {
-        const buffer = Buffer.alloc(4)
-        buffer.writeUInt32BE(data)
-        return buffer
-      } else if (hasTypedArrays) {
-        const buffer = new Uint8Array(4)
-        const dv = new DataView(buffer.buffer)
-        dv.setUint32(0, data)
-        return buffer
-      }
-      break
-    case 'string':
-      if (hasTypedArrays) {
-        return new TextEncoder('utf-8').encode(data)
-      } else if (hasBuffer) {
-        return Buffer.from(data)
-      }
-      break
-    default:
-      if (hasBuffer) {
-        if (Buffer.isBuffer(data)) return data
-      }
-      if (hasTypedArrays) {
-        if (data instanceof ArrayBuffer) {
-          return new Uint8Array(data)
-        }
-        if (ArrayBuffer.isView(data)) {
-          return new Uint8Array(data.buffer)
-        }
-      }
-      throw new Error(`Unrecognized data type ${typeof data}: ${data}`)
+// Convert most things to Buffers.
+class BufferConverter extends BaseConverter {
+  fromUInt32 (data) {
+    const buffer = Buffer.alloc(4)
+    buffer.writeUInt32BE(data)
+    return buffer
   }
-  throw Error(`Internal error: no buffer conversion for ${typeof data}: ${data}`)
+
+  fromByteArray = Buffer.from.bind(Buffer)
+  fromString = Buffer.from.bind(Buffer)
+}
+
+// Convert most things to TypedArrays.
+class TypedArrayConverter extends BaseConverter {
+  fromByteArray = Uint8Array.from.bind(Uint8Array)
+  fromString (data) {
+    return new TextEncoder('utf-8').encode(data)
+  }
+}
+
+function makeBufferConverter (preferTypedArrays = false) {
+  if (hasTypedArrays && (preferTypedArrays || !hasBuffer)) {
+    return new TypedArrayConverter()
+  }
+  if (hasBuffer) {
+    return new BufferConverter()
+  }
+  throw Error('either need TypedArrays or Buffer')
 }
 
 function mirror (data, width) {
@@ -196,6 +253,7 @@ function noop (value) {}
 module.exports = {
   CRC,
   crc,
+  makeBufferConverter,
   models,
   crc1: noop,
   crc6: noop,
