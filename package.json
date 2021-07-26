@@ -1,6 +1,6 @@
 {
   "name": "polycrc",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "polycrc.js",
   "description": "Fast Javascript calculation of custom CRC checksum. Prebuilt models for CRC-6, CRC-8, CRC-10, CRC-16, CRC-24, CRC-32, CRC-32C.",
   "scripts": {

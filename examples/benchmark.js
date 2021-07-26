@@ -26,7 +26,7 @@ let algorythms = {
 
 let total_bytes = 1024 * 1024 * 100
 
-console.log(`${tab('algorythm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
+console.log(`${tab('algorithm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
 let chunk_length = 300
 let data = crypto.randomBytes(chunk_length)
 test_all_bits()
@@ -88,7 +88,7 @@ function benchmark (alg, lib, crc) {
   if (Buffer.isBuffer(value)) {
     value = value.readUIntBE(0, value.length)
   }
-  console.log(`${tab(alg)} ${tab(lib)} ${tab(value)} ${tab(cps)}`)
+  console.log(`${tab(alg)} ${tab(lib)} ${tab(value >>> 0)} ${tab(cps)}`)
 }
 
 function test_selected () {
