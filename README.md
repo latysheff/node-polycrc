@@ -82,7 +82,7 @@ Binary modules marked *
 
 #### 100 Mb of data in 300 byte chunks
 
-       algorythm           module            value         calc/sec
+       algorithm           module            value         calc/sec
 
             crc1          polycrc                1           742093
             crc1              crc              172          1588754
@@ -120,7 +120,7 @@ Binary modules marked *
 
 #### 100 Mb of data in 100 kb chunks
 
-       algorythm           module            value         calc/sec
+       algorithm           module            value         calc/sec
 
             crc1          polycrc                0             1572
             crc1              crc              193             5919

@@ -7,7 +7,7 @@ crc_modules['crc'] = require('crc') // most popular module
 crc_modules['node-crc *'] = require('node-crc') // modules with custom polynoms
 // crc_modules['crc-full'] = require('crc-full')
 
-let algorythms = {
+let algorithms = {
   'crc32': {
     'polycrc': require('../polycrc').crc32,
     'crc': require('crc').crc32,
@@ -26,10 +26,15 @@ let algorythms = {
 
 let total_bytes = 1024 * 1024 * 100
 
+console.log(`Testing available algorithms in modules ${Object.keys(crc_modules)}\n`)
+
 console.log(`${tab('algorithm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
 let chunk_length = 300
 let data = crypto.randomBytes(chunk_length)
 test_all_bits()
+
+console.log(`Testing algorithms ${Object.keys(algorithms)}\n in specific modules`)
+console.log(`${tab('algorithm')} ${tab('module')} ${tab('value')} ${tab('calc/sec')}\n`)
 test_selected()
 
 function tab (str) {
@@ -92,10 +97,10 @@ function benchmark (alg, lib, crc) {
 }
 
 function test_selected () {
-  for (let alg in algorythms) {
-    let algorythm = algorythms[alg]
-    for (let lib in algorythm) {
-      let crc = algorythm[lib]
+  for (let alg in algorithms) {
+    let algorithm = algorithms[alg]
+    for (let lib in algorithm) {
+      let crc = algorithm[lib]
       benchmark(alg, lib, crc)
     }
     console.log('\r')
